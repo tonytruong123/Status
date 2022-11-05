@@ -15,7 +15,7 @@ Picture 3: the location is saved as a form containing 3 main components:
 <img width="1261" alt="Screenshot 2022-11-05 at 7 39 54 AM" src="https://user-images.githubusercontent.com/96477325/200120296-04ab30cf-3dbe-4cba-9c6e-4d7538bb1161.png">
 
 
-UPCOMING STEPS:
-1/ Need to work on multiple users can see the app.
-2/ Test the apps on real devices.
-3/ Write unit test to test the codes in different scenarios. 
+UPCOMING STEPS: <br />
+1/ Need to work on multiple users can see the app. <br />
+2/ Test the apps on real devices. <br />
+3/ Write unit test to test the codes in different scenarios. <br />
