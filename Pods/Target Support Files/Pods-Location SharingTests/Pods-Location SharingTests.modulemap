@@ -1,0 +1,6 @@
+framework module Pods_Location_SharingTests {
+  umbrella header "Pods-Location SharingTests-umbrella.h"
+
+  export *
+  module * { export * }
+}

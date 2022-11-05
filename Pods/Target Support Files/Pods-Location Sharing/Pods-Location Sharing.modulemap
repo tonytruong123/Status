@@ -1,0 +1,6 @@
+framework module Pods_Location_Sharing {
+  umbrella header "Pods-Location Sharing-umbrella.h"
+
+  export *
+  module * { export * }
+}
