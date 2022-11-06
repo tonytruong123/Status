@@ -74,7 +74,7 @@ struct mapView : UIViewRepresentable {
         for i in geopoints{
 
             if i.key != name {
-                // add the red point on the location
+                // add the red point on the location => need to fix only see 2 locations at a time
                 let point = MKPointAnnotation()
                 point.coordinate = CLLocationCoordinate2D(latitude: i.value.latitude, longitude: i.value.longitude)
                 point.title = i.key
