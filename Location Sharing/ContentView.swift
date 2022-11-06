@@ -13,6 +13,7 @@ import MapKit
 struct ContentView: View {
     
     @State var name = ""
+    @ObservedObject var obs = observer()
     
     var body: some View {
         NavigationView{
@@ -22,7 +23,7 @@ struct ContentView: View {
                 
                 if name != ""{
                     
-                    NavigationLink(destination: mapView(name: self.name).navigationBarTitle("", displayMode: .inline)){
+                    NavigationLink(destination: mapView(name: self.name, geopoints: self.obs.data["data"] as! [String : GeoPoint]).navigationBarTitle("", displayMode: .inline)){
                         
                         Text("Share Location")
                     }
@@ -44,6 +45,7 @@ struct ContentView_Previews: PreviewProvider {
 struct mapView : UIViewRepresentable {
     
     var name = ""
+    var geopoints : [String : GeoPoint]
     
     func makeCoordinator() -> Coordinator {
         return mapView.Coordinator(parent1: self)
@@ -58,11 +60,29 @@ struct mapView : UIViewRepresentable {
         manager.delegate = context.coordinator
         manager.startUpdatingLocation()
         map.showsUserLocation = true
+        // have the location center
+        let center = CLLocationCoordinate2D(latitude: 13.086, longitude: 80.2707)
+        // zoom in the location
+        let region = MKCoordinateRegion(center: center, latitudinalMeters: 1000, longitudinalMeters: 1000)
+        map.region = region
         manager.requestWhenInUseAuthorization()
         return map
     }
     
     func updateUIView(_ uiView: MKMapView, context: UIViewRepresentableContext<mapView>) {
+        
+        for i in geopoints{
+
+            if i.key != name {
+                // add the red point on the location
+                let point = MKPointAnnotation()
+                point.coordinate = CLLocationCoordinate2D(latitude: i.value.latitude, longitude: i.value.longitude)
+                point.title = i.key
+                uiView.removeAnnotations(uiView.annotations)
+                uiView.addAnnotation(point)
+            }
+        }
+        
     }
     
     class Coordinator: NSObject, CLLocationManagerDelegate {
@@ -87,7 +107,7 @@ struct mapView : UIViewRepresentable {
     
             let db = Firestore.firestore()
             
-            db.collection("locations").document("sharing").setData(["updates":[self.parent.name : GeoPoint(latitude: (last?.coordinate.latitude)!, longitude: (last?.coordinate.longitude)!)]]) {(err) in
+            db.collection("locations").document("sharing").setData(["updates":[self.parent.name : GeoPoint(latitude: (last?.coordinate.latitude)!, longitude: (last?.coordinate.longitude)!)]], merge: true) {(err) in
                 
                 if err != nil {
                     print((err?.localizedDescription)!)
@@ -98,5 +118,27 @@ struct mapView : UIViewRepresentable {
         }
     }
 }
-                                                                               
+                                                                            
+class observer : ObservableObject {
+    
+    @Published var data = [String : Any]()
+    
+    init() {
+        
+        let db = Firestore.firestore()
+        
+        db.collection("locations").document("sharing").addSnapshotListener { (snap, err)
+            in
+            
+            if err != nil {
+                print((err?.localizedDescription))
+                return
+            }
+            
+            let updates = snap?.get("updates") as! [String : GeoPoint]
+            
+            self.data["data"] = updates
+        }
+    }
+}
                                                                             
