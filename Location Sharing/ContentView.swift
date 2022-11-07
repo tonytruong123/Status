@@ -28,7 +28,6 @@ struct ContentView: View {
                         Text("Share Location")
                     }
                 }
-                
             }.padding()
             .navigationBarTitle("Location sharing")
             
@@ -46,6 +45,7 @@ struct mapView : UIViewRepresentable {
     
     var name = ""
     var geopoints : [String : GeoPoint]
+    var locationManager = CLLocationManager()
     
     func makeCoordinator() -> Coordinator {
         return mapView.Coordinator(parent1: self)
@@ -61,18 +61,31 @@ struct mapView : UIViewRepresentable {
         manager.startUpdatingLocation()
         map.showsUserLocation = true
         // have the location center
-        let center = CLLocationCoordinate2D(latitude: 13.086, longitude: 80.2707)
-        // zoom in the location
-        let region = MKCoordinateRegion(center: center, latitudinalMeters: 1000, longitudinalMeters: 1000)
-        map.region = region
-        manager.requestWhenInUseAuthorization()
+//        let center = CLLocationCoordinate2D(latitude: 13.086, longitude: 80.2707)
+//        // zoom in the location
+//        let region = MKCoordinateRegion(center: center, latitudinalMeters: 1000, longitudinalMeters: 1000)
+//        map.region = region
+//        manager.requestWhenInUseAuthorization()
+//
+//        return map
+        
+        guard let coordinate = locationManager.location?.coordinate else {return map}
+        print(coordinate, "cuoi cc chu cuoi")
+        let coordinateRegion = MKCoordinateRegion(center: coordinate, latitudinalMeters: 1000, longitudinalMeters: 1000)
+        map.region = coordinateRegion
         return map
     }
     
+//    func centerMapOnUserLocation(context: UIViewRepresentableContext<mapView>) -> MKMapView {
+//        guard let coordinate = locationManager.location?.coordinate else {return map}
+//        print(coordinate, "cuoi cc chu cuoi")
+//        let coordinateRegion = MKCoordinateRegion(center: coordinate, latitudinalMeters: 1000, longitudinalMeters: 1000)
+//        map.region = coordinateRegion
+//        return map
+//    }
+    
     func updateUIView(_ uiView: MKMapView, context: UIViewRepresentableContext<mapView>) {
-        
         for i in geopoints{
-
             if i.key != name {
                 // add the red point on the location => need to fix only see 2 locations at a time
                 let point = MKPointAnnotation()
@@ -81,8 +94,13 @@ struct mapView : UIViewRepresentable {
                 uiView.removeAnnotations(uiView.annotations)
                 uiView.addAnnotation(point)
             }
+//            // zoom in the user location
+//            if i.key == name {
+//                let center = CLLocationCoordinate2D(latitude: i.value.latitude, longitude: i.value.longitude)
+//                let region = MKCoordinateRegion(center: center, latitudinalMeters: 1000, longitudinalMeters: 1000)
+//                map.region = region
+//            }
         }
-        
     }
     
     class Coordinator: NSObject, CLLocationManagerDelegate {
@@ -113,6 +131,7 @@ struct mapView : UIViewRepresentable {
                     print((err?.localizedDescription)!)
                     return
                 }
+
                 print("success")
             }
         }
