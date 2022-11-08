@@ -61,45 +61,69 @@ struct mapView : UIViewRepresentable {
         manager.startUpdatingLocation()
         map.showsUserLocation = true
         // have the location center
-//        let center = CLLocationCoordinate2D(latitude: 13.086, longitude: 80.2707)
-//        // zoom in the location
-//        let region = MKCoordinateRegion(center: center, latitudinalMeters: 1000, longitudinalMeters: 1000)
-//        map.region = region
-//        manager.requestWhenInUseAuthorization()
-//
-//        return map
-        
         guard let coordinate = locationManager.location?.coordinate else {return map}
-        print(coordinate, "cuoi cc chu cuoi")
         let coordinateRegion = MKCoordinateRegion(center: coordinate, latitudinalMeters: 1000, longitudinalMeters: 1000)
         map.region = coordinateRegion
         return map
     }
-    
-//    func centerMapOnUserLocation(context: UIViewRepresentableContext<mapView>) -> MKMapView {
-//        guard let coordinate = locationManager.location?.coordinate else {return map}
-//        print(coordinate, "cuoi cc chu cuoi")
-//        let coordinateRegion = MKCoordinateRegion(center: coordinate, latitudinalMeters: 1000, longitudinalMeters: 1000)
-//        map.region = coordinateRegion
-//        return map
-//    }
-    
+
     func updateUIView(_ uiView: MKMapView, context: UIViewRepresentableContext<mapView>) {
+        var fullAdress = ""
         for i in geopoints{
+            print(i.key, i.value.latitude, i.value.longitude)
             if i.key != name {
                 // add the red point on the location => need to fix only see 2 locations at a time
                 let point = MKPointAnnotation()
                 point.coordinate = CLLocationCoordinate2D(latitude: i.value.latitude, longitude: i.value.longitude)
-                point.title = i.key
-                uiView.removeAnnotations(uiView.annotations)
+                // we don't want the pointer of each user to be remove
+//                uiView.removeAnnotations(uiView.annotations)
                 uiView.addAnnotation(point)
+                
+                let geoCoder = CLGeocoder()
+                
+                let location = CLLocation(latitude: i.value.latitude, longitude: i.value.longitude)
+                geoCoder.reverseGeocodeLocation(location, completionHandler:
+                    {
+                        placemarks, error -> Void in
+                        // Place details
+                        guard let placeMark = placemarks?.first else { return }
+
+                        // Location name
+                    if let locationName = placeMark.location {
+                                print("Location name:", locationName)
+                        }
+                    // Street address
+                    if let street = placeMark.thoroughfare {
+                        print("Street Name:", street)
+                        var Street = String(format: "%@", street)
+                        fullAdress += Street
+                        fullAdress += ", "
+                    }
+                    // City
+                    if let city = placeMark.subAdministrativeArea {
+                        print("City:",city)
+                        var City = String(format: "%@", city)
+                        fullAdress += City
+                        fullAdress += ", "
+                    }
+                    // Zip code
+                    if let zip = placeMark.isoCountryCode {
+                        print("Zip:",zip)
+                        var Zip = String(format: "%@", zip)
+                        fullAdress += Zip
+                        fullAdress += ", "
+                    }
+                    // Country
+                    if let country = placeMark.country {
+                        print("Country:",country)
+                        var Country = String(format: "%@", country)
+                        fullAdress += Country
+                        fullAdress += ", "
+                    }
+                    point.title = i.key + ": " + fullAdress
+                    fullAdress = ""
+                })
             }
-//            // zoom in the user location
-//            if i.key == name {
-//                let center = CLLocationCoordinate2D(latitude: i.value.latitude, longitude: i.value.longitude)
-//                let region = MKCoordinateRegion(center: center, latitudinalMeters: 1000, longitudinalMeters: 1000)
-//                map.region = region
-//            }
         }
     }
     
