@@ -9,11 +9,13 @@ import SwiftUI
 import Firebase
 import CoreLocation
 import MapKit
+import UIKit
 
 struct ContentView: View {
     
     @State var name = ""
     @ObservedObject var obs = observer()
+    @State var searchText = ""
     
     var body: some View {
         NavigationView{
@@ -23,14 +25,14 @@ struct ContentView: View {
                 
                 if name != ""{
                     
-                    NavigationLink(destination: mapView(name: self.name, geopoints: self.obs.data["data"] as! [String : GeoPoint]).navigationBarTitle("", displayMode: .inline)){
-                        
+                    NavigationLink(destination: mapView(name: self.name, geopoints: self.obs.data["data"] as! [String : GeoPoint]).searchable(text: $searchText).navigationBarTitle("", displayMode: .inline)){
                         Text("Share Location")
+                        
                     }
+                    
                 }
             }.padding()
             .navigationBarTitle("Location sharing")
-            
         }
     }
 }
@@ -46,6 +48,8 @@ struct mapView : UIViewRepresentable {
     var name = ""
     var geopoints : [String : GeoPoint]
     var locationManager = CLLocationManager()
+    
+
     
     func makeCoordinator() -> Coordinator {
         return mapView.Coordinator(parent1: self)
@@ -69,14 +73,12 @@ struct mapView : UIViewRepresentable {
 
     func updateUIView(_ uiView: MKMapView, context: UIViewRepresentableContext<mapView>) {
         var fullAdress = ""
+        
         for i in geopoints{
-            print(i.key, i.value.latitude, i.value.longitude)
             if i.key != name {
                 // add the red point on the location => need to fix only see 2 locations at a time
                 let point = MKPointAnnotation()
                 point.coordinate = CLLocationCoordinate2D(latitude: i.value.latitude, longitude: i.value.longitude)
-                // we don't want the pointer of each user to be remove
-//                uiView.removeAnnotations(uiView.annotations)
                 uiView.addAnnotation(point)
                 
                 let geoCoder = CLGeocoder()
@@ -90,36 +92,33 @@ struct mapView : UIViewRepresentable {
 
                         // Location name
                     if let locationName = placeMark.location {
-                                print("Location name:", locationName)
+                        var LocationName = String(format:"@", locationName)
                         }
                     // Street address
                     if let street = placeMark.thoroughfare {
-                        print("Street Name:", street)
                         var Street = String(format: "%@", street)
                         fullAdress += Street
                         fullAdress += ", "
                     }
                     // City
                     if let city = placeMark.subAdministrativeArea {
-                        print("City:",city)
                         var City = String(format: "%@", city)
                         fullAdress += City
                         fullAdress += ", "
                     }
                     // Zip code
                     if let zip = placeMark.isoCountryCode {
-                        print("Zip:",zip)
                         var Zip = String(format: "%@", zip)
                         fullAdress += Zip
                         fullAdress += ", "
                     }
                     // Country
                     if let country = placeMark.country {
-                        print("Country:",country)
                         var Country = String(format: "%@", country)
                         fullAdress += Country
                         fullAdress += ", "
                     }
+                    //
                     point.title = i.key + ": " + fullAdress
                     fullAdress = ""
                 })
